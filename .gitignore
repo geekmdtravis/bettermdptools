@@ -10,3 +10,5 @@
 __pycache__
 notebooks/.ipynb_checkpoints/
 .eggs/
+Pipfile
+Pipfile.lock
