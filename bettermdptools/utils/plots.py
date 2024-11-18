@@ -11,28 +11,32 @@ from matplotlib.colors import LinearSegmentedColormap
 
 class Plots:
     @staticmethod
-    def values_heat_map(data, title, size, show=True):
+    def values_heat_map(data, title, size, show=True, filename=None):
         data = np.around(np.array(data).reshape(size), 2)
         df = pd.DataFrame(data=data)
         sns.heatmap(df, annot=True).set_title(title)
 
         if show:
             plt.show()
+        if filename:
+            plt.savefig(filename)
 
     @staticmethod
-    def v_iters_plot(data, title, show=True):
+    def v_iters_plot(data, title, show=True, filename=None):
         df = pd.DataFrame(data=data)
         sns.set_theme(style="whitegrid")
         sns.lineplot(data=df, legend=None).set_title(title)
 
         if show:
             plt.show()
+        if filename:
+            plt.savefig(filename)
 
-    #modified from https://gymnasium.farama.org/tutorials/training_agents/FrozenLake_tuto/
+    # modified from https://gymnasium.farama.org/tutorials/training_agents/FrozenLake_tuto/
     @staticmethod
     def get_policy_map(pi, val_max, actions, map_size):
         """Map the best learned action to arrows."""
-        #convert pi to numpy array
+        # convert pi to numpy array
         best_action = np.zeros(val_max.shape[0], dtype=np.int32)
         for idx, val in enumerate(val_max):
             best_action[idx] = pi[idx]
@@ -43,9 +47,9 @@ class Plots:
         val_max = val_max.reshape(map_size[0], map_size[1])
         return val_max, policy_map
 
-    #modified from https://gymnasium.farama.org/tutorials/training_agents/FrozenLake_tuto/
+    # modified from https://gymnasium.farama.org/tutorials/training_agents/FrozenLake_tuto/
     @staticmethod
-    def plot_policy(val_max, directions, map_size, title, show=True):
+    def plot_policy(val_max, directions, map_size, title, show=True, filename=None):
         """Plot the policy learned."""
         sns.heatmap(
             val_max,
@@ -62,3 +66,5 @@ class Plots:
 
         if show:
             plt.show()
+        if filename:
+            plt.savefig(filename)
