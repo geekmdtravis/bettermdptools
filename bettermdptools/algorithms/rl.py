@@ -18,6 +18,7 @@ have single discrete valued state spaces, like frozen lake. A lambda function
 is required to convert state spaces not in this format.
 """
 
+from typing import Dict, List, Tuple, Callable, Any
 import numpy as np
 from tqdm import tqdm
 from bettermdptools.utils.callbacks import MyCallbacks
@@ -25,7 +26,7 @@ import warnings
 
 
 class RL:
-    def __init__(self, env):
+    def __init__(self, env: Any) -> None:
         self.env = env
         self.callbacks = MyCallbacks()
         self.render = False
@@ -38,18 +39,25 @@ class RL:
         #       return np.random.choice(indxs)
         #   else:
         #       return np.random.randint(len(Q[state]))
-        self.select_action = lambda state, Q, epsilon: (
-            np.random.choice(
-                np.arange(len(Q[state]))[np.isclose(Q[state], np.max(Q[state]))]
+        self.select_action: Callable[[int, np.ndarray, float], int] = (
+            lambda state, Q, epsilon: (
+                np.random.choice(
+                    np.arange(len(Q[state]))[np.isclose(Q[state], np.max(Q[state]))]
+                )
+                if np.random.random() > epsilon
+                else np.random.randint(len(Q[state]))
             )
-            if np.random.random() > epsilon
-            else np.random.randint(len(Q[state]))
         )
 
     @staticmethod
     def decay_schedule(
-        init_value, min_value, decay_ratio, max_steps, log_start=-2, log_base=10
-    ):
+        init_value: float,
+        min_value: float,
+        decay_ratio: float,
+        max_steps: int,
+        log_start: float = -2,
+        log_base: float = 10,
+    ) -> np.ndarray:
         """
         Parameters
         ----------------------------
@@ -91,19 +99,19 @@ class RL:
 
     def q_learning(
         self,
-        nS=None,
-        nA=None,
-        convert_state_obs=lambda state: state,
-        gamma=0.99,
-        init_alpha=0.5,
-        min_alpha=0.01,
-        alpha_decay_ratio=0.5,
-        init_epsilon=1.0,
-        min_epsilon=0.1,
-        epsilon_decay_ratio=0.9,
-        n_episodes=10000,
-        verbose=False,
-    ):
+        nS: int = None,
+        nA: int = None,
+        convert_state_obs: Callable[[Any], int] = lambda state: state,
+        gamma: float = 0.99,
+        init_alpha: float = 0.5,
+        min_alpha: float = 0.01,
+        alpha_decay_ratio: float = 0.5,
+        init_epsilon: float = 1.0,
+        min_epsilon: float = 0.1,
+        epsilon_decay_ratio: float = 0.9,
+        n_episodes: int = 10000,
+        verbose: bool = False,
+    ) -> Tuple[np.ndarray, np.ndarray, Dict[int, int], np.ndarray, List[np.ndarray]]:
         """
         Parameters
         ----------------------------
@@ -165,7 +173,7 @@ class RL:
             nS = self.env.observation_space.n
         if nA is None:
             nA = self.env.action_space.n
-        pi_track = []
+        pi_track: List[np.ndarray] = []
         Q = np.zeros((nS, nA), dtype=np.float64)
         Q_track = np.zeros((n_episodes, nS, nA), dtype=np.float64)
         alphas = RL.decay_schedule(init_alpha, min_alpha, alpha_decay_ratio, n_episodes)
@@ -198,7 +206,7 @@ class RL:
                 td_error = td_target - Q[state][action]
                 Q[state][action] = Q[state][action] + alphas[e] * td_error
                 state = next_state
-                print(f"Q-Learner Updated Q table and state.")
+                print("Q-Learner Updated Q table and state.")
             Q_track[e] = Q
             pi_track.append(np.argmax(Q, axis=1))
             self.render = False
@@ -211,18 +219,18 @@ class RL:
 
     def sarsa(
         self,
-        nS=None,
-        nA=None,
-        convert_state_obs=lambda state: state,
-        gamma=0.99,
-        init_alpha=0.5,
-        min_alpha=0.01,
-        alpha_decay_ratio=0.5,
-        init_epsilon=1.0,
-        min_epsilon=0.1,
-        epsilon_decay_ratio=0.9,
-        n_episodes=10000,
-    ):
+        nS: int = None,
+        nA: int = None,
+        convert_state_obs: Callable[[Any], int] = lambda state: state,
+        gamma: float = 0.99,
+        init_alpha: float = 0.5,
+        min_alpha: float = 0.01,
+        alpha_decay_ratio: float = 0.5,
+        init_epsilon: float = 1.0,
+        min_epsilon: float = 0.1,
+        epsilon_decay_ratio: float = 0.9,
+        n_episodes: int = 10000,
+    ) -> Tuple[np.ndarray, np.ndarray, Dict[int, int], np.ndarray, List[np.ndarray]]:
         """
         Parameters
         ----------------------------
@@ -282,7 +290,7 @@ class RL:
             nS = self.env.observation_space.n
         if nA is None:
             nA = self.env.action_space.n
-        pi_track = []
+        pi_track: List[np.ndarray] = []
         Q = np.zeros((nS, nA), dtype=np.float64)
         Q_track = np.zeros((n_episodes, nS, nA), dtype=np.float64)
         alphas = RL.decay_schedule(init_alpha, min_alpha, alpha_decay_ratio, n_episodes)

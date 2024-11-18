@@ -11,21 +11,36 @@ modified by: John Mansfield
 documentation added by: Gagandeep Randhawa
 
 Class that contains functions related to planning algorithms (Value Iteration, Policy Iteration). 
-Planner init expects a reward and transitions matrix P, which is nested dictionary gym style discrete environment 
+Planner init expects a reward and transitions matrix P, which is a nested dictionary gym style discrete environment 
 where P[state][action] is a list of tuples (probability, next state, reward, terminal).
 
 Model-based learning algorithms: Value Iteration and Policy Iteration
 """
 
-import numpy as np
+from typing import Dict, List, Tuple
 import warnings
+import numpy as np
 
 
 class Planner:
-    def __init__(self, P):
+    """
+    Class that contains functions related to planning algorithms (Value Iteration, Policy Iteration).
+    Planner init expects a reward and transitions matrix P, which is a nested dictionary gym style discrete environment
+    where P[state][action] is a list of tuples (probability, next state, reward, terminal).
+    """
+
+    def __init__(
+        self, P: Dict[int, Dict[int, List[Tuple[float, int, float, bool]]]]
+    ) -> None:
         self.P = P
 
-    def value_iteration(self, gamma=1.0, n_iters=1000, theta=1e-10, verbose=False):
+    def value_iteration(
+        self,
+        gamma: float = 1.0,
+        n_iters: int = 1000,
+        theta: float = 1e-10,
+        verbose: bool = False,
+    ) -> Tuple[np.ndarray, np.ndarray, Dict[int, int]]:
         """
         PARAMETERS:
 
@@ -51,7 +66,7 @@ class Planner:
         V_track {numpy array}, shape(n_episodes, nS):
             Log of V(s) for each iteration
 
-        pi {lambda}, input state value, output action value:
+        pi {Dict[int, int]}:
             Policy mapping states to actions.
         """
         V = np.zeros(len(self.P), dtype=np.float64)
@@ -62,7 +77,9 @@ class Planner:
             if verbose:
                 print(f"Value Iteration Iteration {i}")
             i += 1
-            Q = np.zeros((len(self.P), len(self.P[0])), dtype=np.float64)
+            Q = np.zeros(
+                (len(self.P), len(next(iter(self.P.values())))), dtype=np.float64
+            )
             for s in range(len(self.P)):
                 for a in range(len(self.P[s])):
                     for prob, next_state, reward, done in self.P[s][a]:
@@ -74,10 +91,16 @@ class Planner:
         if not converged:
             warnings.warn("Max iterations reached before convergence.  Check n_iters.")
 
-        pi = {s: a for s, a in enumerate(np.argmax(Q, axis=1))}
+        pi = {s: int(a) for s, a in enumerate(np.argmax(Q, axis=1))}
         return V, V_track, pi
 
-    def policy_iteration(self, gamma=1.0, n_iters=50, theta=1e-10, verbose=False):
+    def policy_iteration(
+        self,
+        gamma: float = 1.0,
+        n_iters: int = 50,
+        theta: float = 1e-10,
+        verbose: bool = False,
+    ) -> Tuple[np.ndarray, np.ndarray, Dict[int, int]]:
         """
         PARAMETERS:
 
@@ -103,12 +126,12 @@ class Planner:
         V_track {numpy array}, shape(n_episodes, nS):
             Log of V(s) for each iteration
 
-        pi {lambda}, input state value, output action value:
+        pi {Dict[int, int]}:
             Policy mapping states to actions.
         """
         random_actions = np.random.choice(tuple(self.P[0].keys()), len(self.P))
 
-        pi = {s: a for s, a in enumerate(random_actions)}
+        pi: Dict[int, int] = {s: a for s, a in enumerate(random_actions)}
         # initial V to give to `policy_evaluation` for the first time
         V = np.zeros(len(self.P), dtype=np.float64)
         V_track = np.zeros((n_iters, len(self.P)), dtype=np.float64)
@@ -128,38 +151,53 @@ class Planner:
             warnings.warn("Max iterations reached before convergence.  Check n_iters.")
         return V, V_track, pi
 
-    def policy_evaluation(self, pi, prev_V, gamma=1.0, theta=1e-10):
+    def policy_evaluation(
+        self,
+        pi: Dict[int, int],
+        prev_V: np.ndarray,
+        gamma: float = 1.0,
+        theta: float = 1e-10,
+    ) -> np.ndarray:
         """
         PARAMETERS:
 
-        pi {lambda}, input state value, output action value:
+        pi {Dict[int, int]}:
             Policy mapping states to actions.
 
         prev_V {numpy array}, shape(possible states):
             Previous state values array
+
+        RETURNS:
+            V {numpy array}, shape(possible states):
+                Updated state values array
         """
         while True:
             V = np.zeros(len(self.P), dtype=np.float64)
             for s in range(len(self.P)):
-                for prob, next_state, reward, done in self.P[s][pi[s]]:
+                a = pi[s]
+                for prob, next_state, reward, done in self.P[s][a]:
                     V[s] += prob * (reward + gamma * prev_V[next_state] * (not done))
             if np.max(np.abs(prev_V - V)) < theta:
                 break
             prev_V = V.copy()
         return V
 
-    def policy_improvement(self, V, gamma=1.0):
+    def policy_improvement(self, V: np.ndarray, gamma: float = 1.0) -> Dict[int, int]:
         """
         PARAMETERS:
 
         V {numpy array}, shape(possible states):
             State values array
+
+        RETURNS:
+            new_pi {Dict[int, int]}:
+                Updated policy mapping states to actions.
         """
-        Q = np.zeros((len(self.P), len(self.P[0])), dtype=np.float64)
+        Q = np.zeros((len(self.P), len(next(iter(self.P.values())))), dtype=np.float64)
         for s in range(len(self.P)):
             for a in range(len(self.P[s])):
                 for prob, next_state, reward, done in self.P[s][a]:
                     Q[s][a] += prob * (reward + gamma * V[next_state] * (not done))
 
-        new_pi = {s: a for s, a in enumerate(np.argmax(Q, axis=1))}
+        new_pi: Dict[int, int] = {s: int(a) for s, a in enumerate(np.argmax(Q, axis=1))}
         return new_pi
