@@ -67,27 +67,26 @@ class Plots:
 
         plt.figure(figsize=size, dpi=dpi)
 
-        for line, label in zip(
-            data,
-            (
-                legend_labels
-                if legend_labels is not None
-                else [f"Line {i}" for i in range(len(data))]
-            ),
-        ):
+        labels = (
+            legend_labels
+            if legend_labels is not None
+            else [f"Line {i}" for i in range(len(data))]
+        )
+
+        for line, label in zip(data, labels):
             if plot_type == "line":
-                sns.lineplot(data=line, legend=legend, label=label)
+                sns.lineplot(data=line, label=label)
             elif plot_type == "bar":
-                plt.bar(range(len(line)), line, label=label, legend=legend)
+                plt.bar(range(len(line)), line, label=label)
             elif plot_type == "step":
-                plt.step(
-                    range(len(line)), line, label=label, where="post", legend=legend
-                )
+                plt.step(range(len(line)), line, label=label, where="post")
 
         plt.title(title, fontsize=title_size)
         plt.xlabel("Iterations", fontsize=label_size)
         plt.ylabel("Value", fontsize=label_size)
         plt.tick_params(axis="both", which="major", labelsize=axis_size)
+        if legend:
+            plt.legend(fontsize=label_size)
 
         if log_x:
             plt.xscale("log")
