@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import math
+from typing import Literal
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -48,6 +48,7 @@ class Plots:
         log_x: bool = False,
         log_y: bool = False,
         legend_labels: list[str] | None = None,
+        type: Literal["line", "bar", "step"] = "line",
     ) -> None:
         if legend_labels is not None and len(legend_labels) != len(data):
             raise ValueError("legend_labels must be the same length as data")
@@ -71,7 +72,12 @@ class Plots:
                 else [f"Line {i}" for i in range(len(data))]
             ),
         ):
-            sns.lineplot(data=line, legend=legend, label=label)
+            if type == "line":
+                sns.lineplot(data=line, legend=legend, label=label)
+            elif type == "bar":
+                plt.bar(range(len(line)), line, label=label)
+            elif type == "step":
+                plt.step(range(len(line)), line, label=label, where="post")
 
         plt.title(title, fontsize=title_size)
         plt.xlabel("Iterations", fontsize=label_size)
