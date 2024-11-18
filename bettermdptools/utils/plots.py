@@ -63,7 +63,9 @@ class Plots:
 
         plt.figure(figsize=size, dpi=dpi)
 
-        for line, label in zip(data, legend_labels):
+        for line, label in zip(
+            data, legend_labels if legend_labels is not None else []
+        ):
             sns.lineplot(data=line, legend=legend, label=label)
 
         plt.title(title, fontsize=title_size)
