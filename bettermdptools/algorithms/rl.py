@@ -18,14 +18,23 @@ have single discrete valued state spaces, like frozen lake. A lambda function
 is required to convert state spaces not in this format.
 """
 
+import warnings
 from typing import Dict, List, Tuple, Callable, Any
 import numpy as np
 from tqdm import tqdm
 from bettermdptools.utils.callbacks import MyCallbacks
-import warnings
 
 
 class RL:
+    """
+    Class that contains functions related to reinforcement learning algorithms. RL init expects an OpenAI environment (env).
+
+    Model-free learning algorithms: Q-Learning and SARSA
+    work out of the box with any gymnasium environments that
+    have single discrete valued state spaces, like frozen lake. A lambda function
+    is required to convert state spaces not in this format.
+    """
+
     def __init__(self, env: Any) -> None:
         self.env = env
         self.callbacks = MyCallbacks()

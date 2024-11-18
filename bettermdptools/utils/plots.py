@@ -11,7 +11,13 @@ from matplotlib.colors import LinearSegmentedColormap
 
 class Plots:
     @staticmethod
-    def values_heat_map(data, title, size, show=True, filename=None):
+    def values_heat_map(
+        data: np.ndarray,
+        title: str,
+        size: tuple[int, int],
+        show: bool = True,
+        filename: str = None,
+    ) -> None:
         data = np.around(np.array(data).reshape(size), 2)
         df = pd.DataFrame(data=data)
         sns.heatmap(df, annot=True).set_title(title)
@@ -27,10 +33,42 @@ class Plots:
             plt.savefig(filename)
 
     @staticmethod
-    def v_iters_plot(data, title, show=True, filename=None):
-        df = pd.DataFrame(data=data)
+    def v_iters_plot(
+        data: np.ndarray | list[np.ndarray],
+        title: str,
+        show: bool = True,
+        filename: str | None = None,
+        watermark: str | None = None,
+        size: tuple[int, int] = (10, 5),
+        dpi: int = 100,
+        legend: bool = True,
+        title_size: int = 16,
+        label_size: int = 12,
+        axis_size: int = 12,
+    ) -> None:
         sns.set_theme(style="whitegrid")
-        sns.lineplot(data=df, legend=None).set_title(title)
+
+        # Convert single array to list for consistent handling
+        if isinstance(data, np.ndarray):
+            data = [data]
+
+        if len(data) > 5:
+            warnings.warn("More than 5 lines may reduce plot legibility")
+
+        plt.figure(figsize=size, dpi=dpi)
+
+        for line in data:
+            sns.lineplot(data=line, legend=legend)
+
+        plt.title(title, fontsize=title_size)
+        plt.xlabel("Iterations", fontsize=label_size)
+        plt.ylabel("Value", fontsize=label_size)
+        plt.tick_params(axis="both", which="major", labelsize=axis_size)
+
+        if watermark:
+            plt.figtext(
+                0.5, 0.5, watermark, ha="center", va="center", alpha=0.2, fontsize=36
+            )
 
         if show and filename:
             warnings.warn(
