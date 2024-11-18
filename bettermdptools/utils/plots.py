@@ -49,7 +49,7 @@ class Plots:
         log_y: bool = False,
         legend_labels: list[str] | None = None,
     ) -> None:
-        if legend_labels and len(legend_labels) != len(data):
+        if legend_labels is not None and len(legend_labels) != len(data):
             raise ValueError("legend_labels must be the same length as data")
 
         sns.set_theme(style="whitegrid")
