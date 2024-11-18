@@ -5,15 +5,11 @@ BSD 3-Clause License
 Copyright (c) 2018, Miguel Morales
 All rights reserved.
 https://github.com/mimoralea/gdrl/blob/master/LICENSE
-"""
 
-"""
 modified by: John Mansfield
 
 documentation added by: Gagandeep Randhawa
-"""
 
-"""
 Class that contains functions related to reinforcement learning algorithms. RL init expects an OpenAI environment (env).
 
 Model-free learning algorithms: Q-Learning and SARSA
