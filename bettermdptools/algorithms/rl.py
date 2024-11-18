@@ -19,6 +19,7 @@ is required to convert state spaces not in this format.
 """
 
 import warnings
+from gymnasium import Env
 from typing import Dict, List, Tuple, Callable, Any
 import numpy as np
 from tqdm import tqdm
@@ -35,7 +36,7 @@ class RL:
     is required to convert state spaces not in this format.
     """
 
-    def __init__(self, env: Any) -> None:
+    def __init__(self, env: Env) -> None:
         self.env = env
         self.callbacks = MyCallbacks()
         self.render = False
@@ -108,8 +109,8 @@ class RL:
 
     def q_learning(
         self,
-        nS: int = None,
-        nA: int = None,
+        nS: int | None = None,
+        nA: int | None = None,
         convert_state_obs: Callable[[Any], int] = lambda state: state,
         gamma: float = 0.99,
         init_alpha: float = 0.5,
@@ -221,9 +222,9 @@ class RL:
             self.render = False
             self.callbacks.on_episode_end(self)
 
-        V = np.max(Q, axis=1)
+        V: np.ndarray = np.max(Q, axis=1)
 
-        pi = {s: a for s, a in enumerate(np.argmax(Q, axis=1))}
+        pi: Dict[int, int] = {s: a for s, a in enumerate(np.argmax(Q, axis=1))}
         return Q, V, pi, Q_track, pi_track
 
     def sarsa(

@@ -39,7 +39,7 @@ class Plots:
         show: bool = True,
         filename: str | None = None,
         watermark: str | None = None,
-        size: tuple[int, int] = (10, 5),
+        size: tuple[int, int] = (8, 6),
         dpi: int = 100,
         legend: bool = True,
         title_size: int = 16,
@@ -48,8 +48,11 @@ class Plots:
         log_x: bool = False,
         log_y: bool = False,
         legend_labels: list[str] | None = None,
-        type: Literal["line", "bar", "step"] = "line",
+        plot_type: Literal["line", "bar", "step"] = "line",
     ) -> None:
+        """
+        Plot the values of an MDP over iterations.
+        """
         if legend_labels is not None and len(legend_labels) != len(data):
             raise ValueError("legend_labels must be the same length as data")
 
@@ -72,12 +75,14 @@ class Plots:
                 else [f"Line {i}" for i in range(len(data))]
             ),
         ):
-            if type == "line":
+            if plot_type == "line":
                 sns.lineplot(data=line, legend=legend, label=label)
-            elif type == "bar":
-                plt.bar(range(len(line)), line, label=label)
-            elif type == "step":
-                plt.step(range(len(line)), line, label=label, where="post")
+            elif plot_type == "bar":
+                plt.bar(range(len(line)), line, label=label, legend=legend)
+            elif plot_type == "step":
+                plt.step(
+                    range(len(line)), line, label=label, where="post", legend=legend
+                )
 
         plt.title(title, fontsize=title_size)
         plt.xlabel("Iterations", fontsize=label_size)
@@ -104,7 +109,7 @@ class Plots:
             warnings.warn(
                 "Both show and filename are present. Saving to file takes precedence."
             )
-
+        plt.tight_layout()
         if show and not filename:
             plt.show()
         if filename:
