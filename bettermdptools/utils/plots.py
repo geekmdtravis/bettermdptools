@@ -64,7 +64,12 @@ class Plots:
         plt.figure(figsize=size, dpi=dpi)
 
         for line, label in zip(
-            data, legend_labels if legend_labels is not None else []
+            data,
+            (
+                legend_labels
+                if legend_labels is not None
+                else [f"Line {i}" for i in range(len(data))]
+            ),
         ):
             sns.lineplot(data=line, legend=legend, label=label)
 
@@ -80,7 +85,13 @@ class Plots:
 
         if watermark:
             plt.figtext(
-                0.5, 0.5, watermark, ha="center", va="center", alpha=0.2, fontsize=36
+                0.5,
+                0.5,
+                "BETTER MDP TOOLS",
+                ha="center",
+                va="center",
+                alpha=0.2,
+                fontsize=72,
             )
 
         if show and filename:
