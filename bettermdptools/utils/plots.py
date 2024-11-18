@@ -45,7 +45,13 @@ class Plots:
         title_size: int = 16,
         label_size: int = 12,
         axis_size: int = 12,
+        log_x: bool = False,
+        log_y: bool = False,
+        legend_labels: list[str] | None = None,
     ) -> None:
+        if legend_labels and len(legend_labels) != len(data):
+            raise ValueError("legend_labels must be the same length as data")
+
         sns.set_theme(style="whitegrid")
 
         # Convert single array to list for consistent handling
@@ -57,13 +63,18 @@ class Plots:
 
         plt.figure(figsize=size, dpi=dpi)
 
-        for line in data:
-            sns.lineplot(data=line, legend=legend)
+        for line, label in zip(data, legend_labels):
+            sns.lineplot(data=line, legend=legend, label=label)
 
         plt.title(title, fontsize=title_size)
         plt.xlabel("Iterations", fontsize=label_size)
         plt.ylabel("Value", fontsize=label_size)
         plt.tick_params(axis="both", which="major", labelsize=axis_size)
+
+        if log_x:
+            plt.xscale("log")
+        if log_y:
+            plt.yscale("log")
 
         if watermark:
             plt.figtext(
