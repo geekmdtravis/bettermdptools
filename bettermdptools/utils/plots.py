@@ -16,7 +16,12 @@ class Plots:
         df = pd.DataFrame(data=data)
         sns.heatmap(df, annot=True).set_title(title)
 
-        if show:
+        if show and filename:
+            warnings.warn(
+                "Both show and filename are present. Saving to file takes precedence."
+            )
+
+        if show and not filename:
             plt.show()
         if filename:
             plt.savefig(filename)
@@ -27,7 +32,12 @@ class Plots:
         sns.set_theme(style="whitegrid")
         sns.lineplot(data=df, legend=None).set_title(title)
 
-        if show:
+        if show and filename:
+            warnings.warn(
+                "Both show and filename are present. Saving to file takes precedence."
+            )
+
+        if show and not filename:
             plt.show()
         if filename:
             plt.savefig(filename)
@@ -64,7 +74,12 @@ class Plots:
         ).set(title=title)
         img_title = f"Policy_{map_size[0]}x{map_size[1]}.png"
 
-        if show:
+        if show and filename:
+            warnings.warn(
+                "Both show and filename are present. Saving to file takes precedence."
+            )
+
+        if show and not filename:
             plt.show()
         if filename:
             plt.savefig(filename)
