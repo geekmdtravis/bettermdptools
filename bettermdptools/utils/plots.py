@@ -49,9 +49,10 @@ class Plots:
         log_y: bool = False,
         legend_labels: list[str] | None = None,
         plot_type: Literal["line", "bar", "step"] = "line",
+        delta_convergence: np.ndarray | None = None,
     ) -> None:
         """
-        Plot the values of an MDP over iterations.
+        Plot the values of an MDP over iterations with optional delta convergence on secondary axis.
         """
         if legend_labels is not None and len(legend_labels) != len(data):
             raise ValueError("legend_labels must be the same length as data")
@@ -65,7 +66,7 @@ class Plots:
         if len(data) > 5:
             warnings.warn("More than 5 lines may reduce plot legibility")
 
-        plt.figure(figsize=size, dpi=dpi)
+        fig, ax1 = plt.subplots(figsize=size, dpi=dpi)
 
         labels = (
             legend_labels
@@ -75,23 +76,36 @@ class Plots:
 
         for line, label in zip(data, labels):
             if plot_type == "line":
-                sns.lineplot(data=line, label=label)
+                sns.lineplot(data=line, label=label, ax=ax1)
             elif plot_type == "bar":
-                plt.bar(range(len(line)), line, label=label)
+                ax1.bar(range(len(line)), line, label=label)
             elif plot_type == "step":
-                plt.step(range(len(line)), line, label=label, where="post")
+                ax1.step(range(len(line)), line, label=label, where="post")
+
+        ax1.set_xlabel("Iterations", fontsize=label_size)
+        ax1.set_ylabel("Value", fontsize=label_size)
+        ax1.tick_params(axis="both", which="major", labelsize=axis_size)
+
+        if delta_convergence is not None:
+            ax2 = ax1.twinx()
+            ax2.plot(delta_convergence, "--", color="red", label="Delta Convergence")
+            ax2.set_ylabel("Delta Convergence", fontsize=label_size)
+            ax2.tick_params(axis="y", labelsize=axis_size)
 
         plt.title(title, fontsize=title_size)
-        plt.xlabel("Iterations", fontsize=label_size)
-        plt.ylabel("Value", fontsize=label_size)
-        plt.tick_params(axis="both", which="major", labelsize=axis_size)
-        if legend:
-            plt.legend(fontsize=label_size)
 
         if log_x:
-            plt.xscale("log")
+            ax1.set_xscale("log")
         if log_y:
-            plt.yscale("log")
+            ax1.set_yscale("log")
+
+        if legend:
+            lines1, labels1 = ax1.get_legend_handles_labels()
+            if delta_convergence is not None:
+                lines2, labels2 = ax2.get_legend_handles_labels()
+                ax1.legend(lines1 + lines2, labels1 + labels2, fontsize=label_size)
+            else:
+                ax1.legend(fontsize=label_size)
 
         if watermark:
             plt.figtext(
