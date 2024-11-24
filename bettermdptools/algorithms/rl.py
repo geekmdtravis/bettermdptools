@@ -121,6 +121,7 @@ class RL:
         epsilon_decay_ratio: float = 0.9,
         n_episodes: int = 10000,
         verbose: bool = False,
+        include_reward_history: bool = False,
     ) -> Tuple[np.ndarray, np.ndarray, Dict[int, int], np.ndarray, List[np.ndarray]]:
         """
         Parameters
@@ -162,6 +163,9 @@ class RL:
         verbose {bool}, default = False:
             Whether to print progress to the console
 
+        include_reward_history {bool}, default = False:
+            Whether to include reward history in the output
+
         Returns
         ----------------------------
         Q {numpy array}, shape(nS, nA):
@@ -178,13 +182,17 @@ class RL:
 
         pi_track {list}, len(n_episodes):
             Log of complete policy for each episode
+
+        reward_history {list}, len(n_episodes):
+            Log of reward history for each episode
         """
         if nS is None:
             nS = self.env.observation_space.n
         if nA is None:
             nA = self.env.action_space.n
         pi_track: List[np.ndarray] = []
-        Q = np.zeros((nS, nA), dtype=np.float64)
+        reward_history: List[np.ndarray] = []
+        Q = -1 * np.ones((nS, nA), dtype=np.float64)
         Q_track = np.zeros((n_episodes, nS, nA), dtype=np.float64)
         alphas = RL.decay_schedule(init_alpha, min_alpha, alpha_decay_ratio, n_episodes)
         epsilons = RL.decay_schedule(
@@ -216,6 +224,8 @@ class RL:
                 td_error = td_target - Q[state][action]
                 Q[state][action] = Q[state][action] + alphas[e] * td_error
                 state = next_state
+                if include_reward_history:
+                    reward_history.append(reward)
                 print("Q-Learner Updated Q table and state.")
             Q_track[e] = Q
             pi_track.append(np.argmax(Q, axis=1))
@@ -225,7 +235,11 @@ class RL:
         V: np.ndarray = np.max(Q, axis=1)
 
         pi: Dict[int, int] = {s: a for s, a in enumerate(np.argmax(Q, axis=1))}
-        return Q, V, pi, Q_track, pi_track
+
+        if include_reward_history:
+            return Q, V, pi, Q_track, pi_track, reward_history
+        else:
+            return Q, V, pi, Q_track, pi_track
 
     def sarsa(
         self,
