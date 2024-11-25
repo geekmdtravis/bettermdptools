@@ -205,6 +205,7 @@ class RL:
             state, info = self.env.reset()
             done = False
             state = convert_state_obs(state)
+            rewards: np.ndarray = np.zeros(n_episodes, dtype=np.float64)
             while not done:
                 if self.render:
                     warnings.warn(
@@ -225,10 +226,12 @@ class RL:
                 Q[state][action] = Q[state][action] + alphas[e] * td_error
                 state = next_state
                 if include_reward_history:
-                    reward_history.append(reward)
+                    rewards[e] += reward
                 print("Q-Learner Updated Q table and state.")
             Q_track[e] = Q
             pi_track.append(np.argmax(Q, axis=1))
+            if include_reward_history:
+                reward_history.append(rewards)
             self.render = False
             self.callbacks.on_episode_end(self)
 
