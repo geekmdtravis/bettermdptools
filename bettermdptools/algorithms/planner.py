@@ -77,9 +77,7 @@ class Planner:
             if verbose:
                 print(f"Value Iteration Iteration {i}")
             i += 1
-            Q = -1 * np.ones(
-                (len(self.P), len(next(iter(self.P.values())))), dtype=np.float64
-            )
+            Q = np.zeros((len(self.P), len(self.P[0])), dtype=np.float64)
             for s in range(len(self.P)):
                 for a in range(len(self.P[s])):
                     for prob, next_state, reward, done in self.P[s][a]:
@@ -193,9 +191,7 @@ class Planner:
             new_pi {Dict[int, int]}:
                 Updated policy mapping states to actions.
         """
-        Q = -1 * np.ones(
-            (len(self.P), len(next(iter(self.P.values())))), dtype=np.float64
-        )
+        Q = np.zeros((len(self.P), len(self.P[0])), dtype=np.float64)
         for s in range(len(self.P)):
             for a in range(len(self.P[s])):
                 for prob, next_state, reward, done in self.P[s][a]:
