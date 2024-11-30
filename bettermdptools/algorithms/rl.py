@@ -183,7 +183,7 @@ class RL:
         pi_track {list}, len(n_episodes):
             Log of complete policy for each episode
 
-        reward_history {list[np.ndarray]}, len(n_episodes):
+        reward_history {np.ndarray}, shape(n_episodes):
             Log of reward history for each episode
         """
         if nS is None:
@@ -191,7 +191,7 @@ class RL:
         if nA is None:
             nA = self.env.action_space.n
         pi_track: List[np.ndarray] = []
-        reward_history: List[np.ndarray] = []
+        reward_history: np.ndarray = np.zeros(n_episodes, dtype=np.int8)
         Q = np.zeros((nS, nA), dtype=np.float64)
         Q_track = np.zeros((n_episodes, nS, nA), dtype=np.float64)
         alphas = RL.decay_schedule(init_alpha, min_alpha, alpha_decay_ratio, n_episodes)
@@ -231,7 +231,7 @@ class RL:
             Q_track[e] = Q
             pi_track.append(np.argmax(Q, axis=1))
             if include_reward_history:
-                reward_history.append(rewards)
+                reward_history[e] = np.sum(rewards)
             self.render = False
             self.callbacks.on_episode_end(self)
 
