@@ -191,29 +191,41 @@ class RL:
         if nA is None:
             nA = self.env.action_space.n
         pi_track: List[np.ndarray] = []
-        reward_history: np.ndarray = np.zeros(n_episodes, dtype=np.int8)
+        reward_history: np.ndarray = np.zeros(
+            n_episodes, dtype=np.float64
+        )  # Changed to float64
         Q = np.zeros((nS, nA), dtype=np.float64)
         Q_track = np.zeros((n_episodes, nS, nA), dtype=np.float64)
         alphas = RL.decay_schedule(init_alpha, min_alpha, alpha_decay_ratio, n_episodes)
         epsilons = RL.decay_schedule(
             init_epsilon, min_epsilon, epsilon_decay_ratio, n_episodes
         )
+
         for e in tqdm(range(n_episodes), leave=False, disable=verbose):
-            print(f"Q-Learner Episode {e}")
+            if verbose:
+                print(f"Q-Learner Episode {e}")
             self.callbacks.on_episode_begin(self)
             self.callbacks.on_episode(self, episode=e)
             state, info = self.env.reset()
             done = False
             state = convert_state_obs(state)
-            rewards: np.ndarray = np.zeros(n_episodes, dtype=np.float64)
+
+            # Track episode reward
+            episode_reward = 0.0
+
             while not done:
                 if self.render:
                     warnings.warn(
                         "Occasional render has been deprecated by openAI.  Use test_env.py to render."
                     )
                 action = self.select_action(state, Q, epsilons[e])
-                print(f"Q-Learner Stepping with action {action}")
+                if verbose:
+                    print(f"Q-Learner Stepping with action {action}")
                 next_state, reward, terminated, truncated, _ = self.env.step(action)
+
+                # Accumulate reward for this episode
+                episode_reward += reward
+
                 if truncated:
                     warnings.warn(
                         "Episode was truncated.  TD target value may be incorrect."
@@ -225,18 +237,19 @@ class RL:
                 td_error = td_target - Q[state][action]
                 Q[state][action] = Q[state][action] + alphas[e] * td_error
                 state = next_state
-                if include_reward_history:
-                    rewards[e] += reward
-                print("Q-Learner Updated Q table and state.")
+                if verbose:
+                    print("Q-Learner Updated Q table and state.")
+
+            # Store total episode reward
+            if include_reward_history:
+                reward_history[e] = episode_reward
+
             Q_track[e] = Q
             pi_track.append(np.argmax(Q, axis=1))
-            if include_reward_history:
-                reward_history[e] = np.sum(rewards)
             self.render = False
             self.callbacks.on_episode_end(self)
 
         V: np.ndarray = np.max(Q, axis=1)
-
         pi: Dict[int, int] = {s: a for s, a in enumerate(np.argmax(Q, axis=1))}
 
         if include_reward_history:
